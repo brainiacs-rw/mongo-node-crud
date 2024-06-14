@@ -38,7 +38,7 @@ exports.getUserById = async (req, res) => {
         res.status(500).send('Internal server error');
     }
 }
-//HOME WORD
+//HOME WORK
 
 //1. update user
 //2. delete user
