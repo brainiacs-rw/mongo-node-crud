@@ -1,11 +1,16 @@
 const {
     User
 } = require("../models/user.model");
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 exports.createUser = async (req, res) => {
     try {
         const userName = req.body.userName;
-        const password = req.body.password;
+        let normalTextPassword= req.body.password;
+
+        const password = await bcrypt.hash(normalTextPassword, 10);
+
         const userData = new User({
             userName,
             password
@@ -42,3 +47,36 @@ exports.getUserById = async (req, res) => {
 
 //1. update user
 //2. delete user
+
+//  bcrypt and jsonwebtoken
+
+// 1. bcrypt is used to hash the password
+
+exports.userLogin = async (req, res) => {
+    try {
+        const userName = req.body.userName;
+        const password = req.body.password;
+        const user = await User.findOne({
+            userName
+        });
+        if (!user) {
+            return res.status(400).send('Invalid credentials');
+        }
+        const isValid = await bcrypt.compare(password, user.password);
+        if (!isValid) {
+            return res.status(400).send('Invalid credentials');
+        }
+        const token = jwt.sign({
+            id: user._id
+        }, 'secretkey');
+        res.status(200).json({
+            token: token,
+            expiredIn: '1h',
+            message: 'Login successful'
+        }
+            );
+    } catch (err) {
+        console.log(err);
+        res.status(500).send('Internal server error');
+    }
+}
